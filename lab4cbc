@@ -1,0 +1,40 @@
+from cryptography.hazmat.primitives import padding
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+import os
+
+# Generate key and IV
+key = os.urandom(32)
+iv = os.urandom(16)
+
+# Message containing three blocks
+message = b"0123456789ABCDEF" * 3
+
+# Apply PKCS7 padding
+padder = padding.PKCS7(128).padder()
+padded_data = padder.update(message) + padder.finalize()
+
+# AES-CBC encryption
+cipher = Cipher(algorithms.AES(key), modes.CBC(iv))
+encryptor = cipher.encryptor()
+ciphertext = encryptor.update(padded_data) + encryptor.finalize()
+
+# Modify one byte in the second ciphertext block
+modified_ciphertext = bytearray(ciphertext)
+modified_ciphertext[16] ^= 1
+
+# Decrypt original ciphertext
+decryptor = cipher.decryptor()
+original_plaintext = decryptor.update(ciphertext) + decryptor.finalize()
+
+# Decrypt modified ciphertext
+decryptor = cipher.decryptor()
+modified_plaintext = decryptor.update(bytes(modified_ciphertext)) + decryptor.finalize()
+
+print("Original plaintext:", original_plaintext)
+print("Modified plaintext:", modified_plaintext)
+
+# Compare the plaintext blocks
+for i in range(0, len(original_plaintext), 16):
+    print(f"Block {i // 16 + 1}:")
+    print("Original :", original_plaintext[i:i+16])
+    print("Modified :", modified_plaintext[i:i+16])

@@ -1,0 +1,9 @@
+import hashlib
+
+def file_hash(filepath):
+    with open(filepath, "rb") as f:
+        print("SHA-256 Hash:", hashlib.sha256(f.read()).hexdigest())
+
+file_hash("secret.txt")
+
+

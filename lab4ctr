@@ -1,0 +1,59 @@
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+from cryptography.hazmat.primitives import padding
+import os
+import time
+
+# Generate a 128-bit AES key
+key = os.urandom(16)
+
+# Generate a large message (10 MB)
+message = os.urandom(10 * 1024 * 1024)
+
+# ---------------- AES-CTR Encryption ----------------
+nonce = os.urandom(16)
+ctr_cipher = Cipher(algorithms.AES(key), modes.CTR(nonce))
+
+start = time.perf_counter()
+encryptor = ctr_cipher.encryptor()
+ctr_ciphertext = encryptor.update(message) + encryptor.finalize()
+ctr_time = time.perf_counter() - start
+
+# Decrypt and verify CTR
+decryptor = ctr_cipher.decryptor()
+ctr_plaintext = decryptor.update(ctr_ciphertext) + decryptor.finalize()
+
+# ---------------- AES-CBC Encryption ----------------
+iv = os.urandom(16)
+
+# CBC requires padding to a 16-byte block boundary
+padder = padding.PKCS7(128).padder()
+padded_message = padder.update(message) + padder.finalize()
+
+cbc_cipher = Cipher(algorithms.AES(key), modes.CBC(iv))
+
+start = time.perf_counter()
+encryptor = cbc_cipher.encryptor()
+cbc_ciphertext = encryptor.update(padded_message) + encryptor.finalize()
+cbc_time = time.perf_counter() - start
+
+# Decrypt and verify CBC
+decryptor = cbc_cipher.decryptor()
+decrypted_padded = decryptor.update(cbc_ciphertext) + decryptor.finalize()
+
+unpadder = padding.PKCS7(128).unpadder()
+cbc_plaintext = unpadder.update(decrypted_padded) + unpadder.finalize()
+
+# ---------------- Results ----------------
+print("Message size:", len(message) / (1024 * 1024), "MB")
+print("AES-CTR encryption time:", round(ctr_time, 4), "seconds")
+print("AES-CBC encryption time:", round(cbc_time, 4), "seconds")
+
+print("CTR decryption correct:", ctr_plaintext == message)
+print("CBC decryption correct:", cbc_plaintext == message)
+
+if ctr_time < cbc_time:
+    print("AES-CTR was faster in this run.")
+elif cbc_time < ctr_time:
+    print("AES-CBC was faster in this run.")
+else:
+    print("Both modes took approximately the same time.")

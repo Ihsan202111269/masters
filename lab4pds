@@ -1,0 +1,18 @@
+
+def pkcs7_pad(data, block_size=16):
+    pad_len = block_size - (len(data) % block_size)
+    return data + bytes([pad_len] * pad_len)
+
+def ansi_x923_pad(data, block_size=16):
+    pad_len = block_size - (len(data) % block_size)
+    return data + b"\x00" * (pad_len - 1) + bytes([pad_len])
+
+def iso_7816_4_pad(data, block_size=16):
+    pad_len = block_size - (len(data) % block_size)
+    return data + b"\x80" + b"\x00" * (pad_len - 1)
+
+msg = b"Padding demo"
+
+print("PKCS7:", pkcs7_pad(msg))
+print("ANSI X.923:", ansi_x923_pad(msg))
+print("ISO 7816-4:", iso_7816_4_pad(msg))

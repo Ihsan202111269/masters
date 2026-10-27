@@ -1,0 +1,29 @@
+from cryptography.hazmat.primitives.asymmetric import ed25519
+from cryptography.hazmat.primitives import serialization
+
+# Key generation
+private_key = ed25519.Ed25519PrivateKey.generate()
+public_key = private_key.public_key()
+
+message = b"Message for EdDSA signing"
+
+# Sign
+signature = private_key.sign(message)
+
+# Export Public Key and Signature in Hex Format
+public_bytes = public_key.public_bytes(
+    encoding=serialization.Encoding.Raw,
+    format=serialization.PublicFormat.Raw
+)
+public_key_hex = public_bytes.hex()
+signature_hex = signature.hex()
+
+print("Public Key (Hex):", public_key_hex)
+print("Signature (Hex):", signature_hex)
+
+# Reconstruct and verify using the exported public key and signature
+reconstructed_public_key = ed25519.Ed25519PublicKey.from_public_bytes(bytes.fromhex(public_key_hex))
+reconstructed_signature = bytes.fromhex(signature_hex)
+
+reconstructed_public_key.verify(reconstructed_signature, message)
+print("Verification successful")

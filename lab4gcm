@@ -1,0 +1,38 @@
+
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+import os
+
+# Generate a 256-bit AES key
+key = os.urandom(32)
+
+# Generate a 12-byte (96-bit) IV
+iv = os.urandom(12)
+
+# Create AES-GCM cipher
+cipher = Cipher(algorithms.AES(key), modes.GCM(iv))
+
+# Create encryptor
+encryptor = cipher.encryptor()
+
+# Message to encrypt
+message = b"Confidential and authenticated message"
+
+# Encrypt the message
+ciphertext = encryptor.update(message) + encryptor.finalize()
+
+# Get the authentication tag
+tag = encryptor.tag
+
+print("Ciphertext:", ciphertext.hex())
+print("Tag:", tag.hex())
+
+# Decryption with verification
+decryptor = Cipher(
+    algorithms.AES(key),
+    modes.GCM(iv, tag)
+).decryptor()
+
+# Decrypt and verify the authentication tag
+decrypted = decryptor.update(ciphertext) + decryptor.finalize()
+
+print("Verified Decryption:", decrypted.decode())

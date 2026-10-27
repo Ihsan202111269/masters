@@ -1,0 +1,21 @@
+from cryptography.hazmat.primitives.asymmetric import ec
+from cryptography.hazmat.primitives import serialization
+
+# Alice generates private key
+alice_private = ec.generate_private_key(ec.SECP256R1())
+alice_public = alice_private.public_key()
+
+# Bob generates private key
+bob_private = ec.generate_private_key(ec.SECP256R1())
+bob_public = bob_private.public_key()
+
+# Exchange and compute shared key
+alice_shared = alice_private.exchange(ec.ECDH(), bob_public)
+bob_shared = bob_private.exchange(ec.ECDH(), alice_public)
+
+print("Alice Shared Key:", alice_shared.hex())
+print("Bob Shared Key:", bob_shared.hex())
+
+# Demonstrate that both get the same shared secret
+assert alice_shared == bob_shared
+print("Verification successful: Both shared secrets match!")

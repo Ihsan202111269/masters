@@ -1,0 +1,27 @@
+from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives.asymmetric import rsa, padding
+
+# RSA key pair generation
+private_key = rsa.generate_private_key(
+    public_exponent=65537, 
+    key_size=2048
+)
+public_key = private_key.public_key() 
+message = b"Message for RSA signing"
+
+# Sign the message
+signature = private_key.sign(
+    message, 
+    padding.PKCS1v15(), 
+    hashes.SHA256()
+)
+print("Signature:", signature.hex())
+
+# Verify the signature
+public_key.verify(
+    signature, 
+    message, 
+    padding.PKCS1v15(), 
+    hashes.SHA256()
+)
+print("Verification successful")
